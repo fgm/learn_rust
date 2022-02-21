@@ -16,7 +16,6 @@ fn main() {
   - `/* ... */` is also supported
   - commenting is idiomatically above the line, not after its end on the right
 - assignement is a statement, not an expression (like Go, unlike C/Ruby)
-- `loop` creates an infinite loop
 - `println!` is a _macro_, not a _function_.
   - We know this because it finishes with a `!`
 - _trait_ defines an extended notion of an interface which can include
@@ -114,9 +113,36 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
 
 Reference: https://doc.rust-lang.org/book/appendix-02-operators.html
 
-### If/then/else
+### If
 
+- Traditional
+```rust
+fn main() {
+    if expr {
+        /* braces required */
+    } else if expr {
+        /* braces required except for `else if` */
+        /* else is optional */
+    } else {
+        /* braces required */
+        /* else could be on another line */
+    }
+}
+```
+- The `else` does not have to be on the same line as the previous closing brace
+- Ternary because if is an expression: `let x = if condition { y } else { z }`
+  - Both arms must evaluate to a value of the same type
 
+### Loops: `loop` / `break` / labels / `while`
+
+- labels are lines starting with a quote and ending with a colon, like `'id:`
+- `loop` creates an infinite loop
+- `break` exits it. 
+  - May specify a target label, including the initial quote.
+  - May specify a "return" value, because loops are expressions too
+- `continue` skips to next iteration
+- `while` evaluates to the unit value, so useless as an expression
+- `for x in iterable { /* braces required */ }`
 
 ## Tools
 
