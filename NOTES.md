@@ -1,5 +1,21 @@
 ## Code
 
+- "Rust is an expression-based language". See example:
+```rust
+fn main() {
+    let y = {
+        let x = 3;
+        x + 1 // Note: no terminal ";" or it won't work
+        // x+1 is an expression, but x+1; is a statement
+    };
+    println!("{}", y) // 4
+}
+```
+- comments 
+  - use `//` idiomatically. 
+  - `/* ... */` is also supported
+  - commenting is idiomatically above the line, not after its end on the right
+- assignement is a statement, not an expression (like Go, unlike C/Ruby)
 - `loop` creates an infinite loop
 - `println!` is a _macro_, not a _function_.
   - We know this because it finishes with a `!`
@@ -79,6 +95,15 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
 ### Functions
 
 - Keyword `fn`
+- Parameters are comma-separated, typed with a `:`, like `fn foo(x: i32, c: char)`
+- Function calls are expressions
+- Return is described by a `-> <type>` annotation, like `fn bar() -> i32`
+- To return multiple values, return a tuple and destructure the results
+  - stable in a let, like `let (two, three) = another_function(24, 'w');`
+  - unstable in an assignment: don't use yet (22B)
+- If a function ends with an expression (without the `;` that would make it a statement)
+  it returns the value of that expression.
+- `return` can also be used.
 
 ### Operators
 
@@ -88,6 +113,10 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
 - Arithmetic: `+|-|*|/|%`
 
 Reference: https://doc.rust-lang.org/book/appendix-02-operators.html
+
+### If/then/else
+
+
 
 ## Tools
 
