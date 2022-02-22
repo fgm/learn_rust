@@ -26,7 +26,13 @@ fn main() {
   - `Ok` contains the result value
   - `Err` contains the error met obtaining the value
 - Unused imports cause warnings
+- Unused variables cause warnings
+  - Prefixing a variable identifier with `_` makes the compiler not warn if the
+    variable is not used.
 - Assignement is called _binding a value to a name_
+- NLL: non-lexical lifetime: since Rust 1.31, the borrow checker can determine
+  when a reference is no longer used, and release the borrowing,
+  before the end of the scope
 
 ### Types
 
@@ -58,7 +64,7 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
       which are not characters on their own
 - Compound: tuple
   - Fixed size
-  - Heterogeneous
+  - Heterogeneous, the type of members is part of the tuple type, in order
   - Literal: `let tup = (value, value, ....)`
   - Explicit variable typing: `let tup: (i32, f64, u8) = (500, 6.4, 1)`
   - Item access
@@ -110,6 +116,8 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
   - Lower bound is inclusive
   - Upper bound is exclusive
 - Arithmetic: `+|-|*|/|%`
+- `&` produces a _reference_, not a pointer.
+- monadic `*` dereferences a reference 
 
 Reference: https://doc.rust-lang.org/book/appendix-02-operators.html
 
@@ -143,6 +151,94 @@ fn main() {
 - `continue` skips to next iteration
 - `while` evaluates to the unit value, so useless as an expression
 - `for x in iterable { /* braces required */ }`
+
+## Ownership
+
+- Each value in Rust has a variable that’s called its owner.
+- There can only be one owner at a time
+- When the owner goes out of scope, the value will be dropped, calling the `drop`
+  method provided by the `Drop` trait. Related to the RAII pattern.
+- https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html
+- The limitation of "one owner" ensures `drop` will never be called more than
+  once, by the resource owner only.
+
+### Shallow copy vs move
+
+- In this example, the `s2 = s1` assignement does not perform a shallow copy, 
+  but a _move_: ownership of the internal `str` pointer in the `String` is transferred
+  to `s2`, and `s1` can no longer be used.
+
+```rust
+fn invalid() {
+    let s1 = String::from("hello");
+    let s2 = s1;
+
+    println!("{}, world!", s1);
+}
+```
+- One consequence is that deep copies never happe, so automatic copies are cheap.
+- This also happens on function calls (but not macro expansion like println!) and returns
+- On function exit, ownership of the local heap vars and arguments is dropped
+  See `ownership_demo`, `takes_ownership`, `makes_copy` in `ownership/src/main.rs`
+- One way to avoid it is the use of references (`&foo` is a reference not a pointer)
+- Moves 
+  - can be prevented by implementing the `Copy` trait to allow values to remain
+  valid after assignment to another variables
+  - The trait is present for types allocated on the stack (integers, etc)
+  - `Copy` cannot be added on types implementing the `Drop` trait.
+- Example valid types for `Copy`
+  - all integer, bool, float, char types
+  - tuples only containing types implementing `Copy`
+
+### Cloning
+
+Conversely, `clone` performs a deep copy and does not transfer ownership.
+
+```rust
+fn valid() {
+    let s1 = String::from("hello");
+    let s2 = s1.clone();
+
+    println!("s1 = {}, s2 = {}", s1, s2);
+}
+```
+
+It means `clone` is a true deep copy, and can be expensive.
+
+### References and borrowing
+
+- A _reference_ is 
+  - like a pointer in that it’s an address we can follow to access data
+  - but the data stored at that address is owned by some other variable
+  - this implies that the data is always valid
+- Creating a reference (with `&`) is called _borrowing_.
+  - Immutable by default
+  - Mutable references are created by `&mut foo`, assuming `foo` is mutable
+  - Only one mutable reference may exist at a time for a given piece of data
+  - An immutable and a mutable reference to the same data cannot coexist
+    (users of the immutable reference could get the data changed while they
+    assume it is immutable)
+- Because a function call using a reference passes a borrowed value,
+  the argument will not cause a drop because it does not have ownershi
+
+The restriction on multiple mutable references helps prevent _data races_ at
+compile time. Data races happen when
+- two or more pointers point to the same data at the same time
+- at least one of them attempts to write the data
+- there is no synchronization mechanism between them.
+
+Dangling references are also impossible, as in this example:
+```rust
+fn dangle() -> &String { // dangle returns a reference to a String
+
+    let s = String::from("hello"); // s is a new String
+
+    &s // we return a reference to the String, s
+} // Here, s goes out of scope, and is dropped. Its memory goes away.
+  // Danger!
+```
+That code doesn't compile, because `s` no longer exists after the end of the function,
+so the reference would be dangling.
 
 ## Tools
 
