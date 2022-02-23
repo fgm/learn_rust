@@ -62,6 +62,8 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
   - Characters: 4-byte Unicode, from `U+0000` to `U+D7FF` and `U+E000` to `E+10FFFF`
     - The `U+D800`..`U+DFFF` range is reserved for surrogate pair halfs,
       which are not characters on their own
+    - Literals like `b'x'` express the `u8` representation of the character `x`,
+      which MUST be ASCII: `b'é` doesn't work.
 - Compound: tuple
   - Fixed size
   - Heterogeneous, the type of members is part of the tuple type, in order
@@ -81,6 +83,15 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
     - Type annotation is optional, includes length: `let arr: [i32; 5] = [1, 2, 3, 4, 5]`
     - Repeated initial value `let arr = [3; 5]` gives `[3, 3, 3, 3, 3]`
   - Out of range indexing panics.
+- Slices: a `*struct{ ptr, len, capacity}` (vs `struct {ptr, offset, len}` in Go)
+  describing a view into a piece of data
+  - Slices of `String` can be created using `..` as the slicing operator,
+    as in `let hello = &s[0..5]`.
+  - Slice indexes are expressed in bytes, but String slicing MUST happen on
+     valid UTF-8 character boundaries.
+  - In `let s = "Hello"`, the string literal `s` is a `&str`: an immutable
+    reference which is a slice pointing to the compiled-in data making up `Hello`.
+  - Slices also apply to arrays, in the same way. 
 
 ### Variables and constants
 
@@ -115,6 +126,7 @@ The type annotation for a variable `: <type>`, like `let x: u32;`
 - `..` range definition operator, as in `1..101`.
   - Lower bound is inclusive
   - Upper bound is exclusive
+  - As with Go `:`, either or both limits can be omitted.
 - Arithmetic: `+|-|*|/|%`
 - `&` produces a _reference_, not a pointer.
 - monadic `*` dereferences a reference 

@@ -20,6 +20,20 @@ fn calculate_length(s: String) -> (String, usize) {
     return (s, length); // return as a statement works too.
 }
 
+// first_word demoes the string slice mechanism.
+// fn first_word(s: &String) -> &str {
+fn first_word(s: &str) -> &str { // Better than above: it will accept both &str and &String due to deref coercion.
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' { // b' ' == 0x20
+            return &s[0..i];
+        }
+    }
+
+    &s[..] // Note: return slice, not original String
+}
+
 fn main() {
     let mut s = String::from("thé");
     s.push_str(" au lait");
@@ -27,9 +41,34 @@ fn main() {
 
     valid();
     invalid();
+    ownership_demo();
 
     let (s, l) = calculate_length(s);
-    println!("s: {}, l: {}", s, l)
+    println!("s: {}, l: {}", s, l);
+
+    println!("First word: {}", first_word(&s));
+    slicing_demo();
+}
+
+fn slicing_demo() {
+    let my_string = String::from("hello world");
+
+    // `first_word` works on slices of `String`s, whether partial or whole
+    let word = first_word(&my_string[0..6]);
+    let word = first_word(&my_string[..]);
+    // `first_word` also works on references to `String`s, which are equivalent
+    // to whole slices of `String`s
+    let word = first_word(&my_string);
+
+    let my_string_literal = "hello world";
+
+    // `first_word` works on slices of string literals, whether partial or whole
+    let word = first_word(&my_string_literal[0..6]);
+    let word = first_word(&my_string_literal[..]);
+
+    // Because string literals *are* string slices already,
+    // this works too, without the slice syntax!
+    let word = first_word(my_string_literal);
 }
 
 fn ownership_demo() {
